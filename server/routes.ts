@@ -151,23 +151,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
       
-      // Parse the data with our custom Zod schema that handles type conversion
-      const parsedData = timeEntrySchema.parse(req.body);
+      const data = req.body;
+      
+      // Skip Zod validation and explicitly process the data
+      let dateObj: Date;
+      
+      if (typeof data.date === 'string') {
+        dateObj = new Date(data.date);
+      } else if (data.date instanceof Date) {
+        dateObj = data.date;
+      } else {
+        return res.status(400).json({ error: "Invalid date format" });
+      }
+      
+      // Validate the date
+      if (isNaN(dateObj.getTime())) {
+        return res.status(400).json({ error: "Invalid date" });
+      }
       
       // Check if it's a weekend
-      if (isWeekend(parsedData.date)) {
+      if (isWeekend(dateObj)) {
         return res.status(400).json({ error: "Cannot add time entries for weekends" });
       }
       
-      const timeEntry = await storage.createTimeEntry(parsedData);
+      // Create a clean object with all the necessary conversions
+      const processedData = {
+        employeeId: Number(data.employeeId),
+        date: dateObj,
+        checkInTime: data.checkInTime,
+        checkOutTime: data.checkOutTime || undefined,
+        breakMinutes: Number(data.breakMinutes) || 0
+      };
+      
+      console.log("Processed data for time entry:", processedData);
+      
+      // Skip the schema validation and pass directly to storage
+      const timeEntry = await storage.createTimeEntry(processedData);
       
       res.status(201).json(timeEntry);
     } catch (error: any) {
-      if (error.name === "ZodError") {
-        return res.status(400).json({ error: error.errors });
-      }
       console.error("Create time entry error:", error);
-      res.status(500).json({ error: "Failed to create time entry" });
+      res.status(500).json({ error: error.message || "Failed to create time entry" });
     }
   });
 
@@ -194,16 +218,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
       
       const id = parseInt(req.params.id);
+      const data = req.body;
       
-      // Parse the data with our custom Zod schema that handles type conversion
-      const parsedData = timeEntrySchema.partial().parse(req.body);
+      // Create an object to hold the processed data
+      const processedData: any = {};
       
-      // Check if it's a weekend
-      if (parsedData.date && isWeekend(parsedData.date)) {
-        return res.status(400).json({ error: "Cannot update time entries to weekends" });
+      // Process each field individually
+      if (data.employeeId !== undefined) {
+        processedData.employeeId = Number(data.employeeId);
       }
       
-      const timeEntry = await storage.updateTimeEntry(id, parsedData);
+      if (data.breakMinutes !== undefined) {
+        processedData.breakMinutes = Number(data.breakMinutes);
+      }
+      
+      if (data.checkInTime !== undefined) {
+        processedData.checkInTime = data.checkInTime;
+      }
+      
+      if (data.checkOutTime !== undefined) {
+        processedData.checkOutTime = data.checkOutTime || undefined;
+      }
+      
+      // Handle date field
+      if (data.date !== undefined) {
+        let dateObj: Date;
+        
+        if (typeof data.date === 'string') {
+          dateObj = new Date(data.date);
+        } else if (data.date instanceof Date) {
+          dateObj = data.date;
+        } else {
+          return res.status(400).json({ error: "Invalid date format" });
+        }
+        
+        // Validate the date
+        if (isNaN(dateObj.getTime())) {
+          return res.status(400).json({ error: "Invalid date" });
+        }
+        
+        // Check if it's a weekend
+        if (isWeekend(dateObj)) {
+          return res.status(400).json({ error: "Cannot update time entries to weekends" });
+        }
+        
+        processedData.date = dateObj;
+      }
+      
+      console.log("Processed data for time entry update:", processedData);
+      
+      const timeEntry = await storage.updateTimeEntry(id, processedData);
       
       if (!timeEntry) {
         return res.status(404).json({ error: "Time entry not found" });
@@ -211,11 +275,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(timeEntry);
     } catch (error: any) {
-      if (error.name === "ZodError") {
-        return res.status(400).json({ error: error.errors });
-      }
       console.error("Update time entry error:", error);
-      res.status(500).json({ error: "Failed to update time entry" });
+      res.status(500).json({ error: error.message || "Failed to update time entry" });
     }
   });
 
