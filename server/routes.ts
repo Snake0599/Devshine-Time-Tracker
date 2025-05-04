@@ -260,7 +260,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const reportType = req.query.reportType as string || "weekly";
       const dateFrom = req.query.dateFrom ? parseISO(req.query.dateFrom as string) : undefined;
       const dateTo = req.query.dateTo ? parseISO(req.query.dateTo as string) : undefined;
-      const employeeId = req.query.employeeId ? parseInt(req.query.employeeId as string) : undefined;
+      const employeeId = req.query.employeeId && req.query.employeeId !== "all_employees" 
+        ? parseInt(req.query.employeeId as string) 
+        : undefined;
       
       const report = await storage.generateReport({
         reportType,

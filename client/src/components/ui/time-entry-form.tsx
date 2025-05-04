@@ -67,11 +67,17 @@ export function TimeEntryForm({ timeEntry, onSuccess }: TimeEntryFormProps) {
   // Create or update mutation
   const mutation = useMutation({
     mutationFn: async (data: TimeEntryFormValues) => {
+      // Convert the date string to a Date object
+      const processedData = {
+        ...data,
+        date: new Date(data.date),
+      };
+      
       const endpoint = timeEntry 
         ? `/api/time-entries/${timeEntry.id}` 
         : "/api/time-entries";
       const method = timeEntry ? "PATCH" : "POST";
-      const res = await apiRequest(method, endpoint, data);
+      const res = await apiRequest(method, endpoint, processedData);
       return await res.json();
     },
     onSuccess: () => {

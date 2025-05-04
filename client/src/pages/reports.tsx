@@ -66,7 +66,11 @@ export default function Reports() {
 
   // Handle generate report
   const handleGenerateReport = () => {
-    // The query will refetch with the current filter values
+    // Only pass employeeId if it's not 'all_employees'
+    const employeeIdParam = employeeId !== "all_employees" ? employeeId : undefined;
+    queryClient.invalidateQueries({ 
+      queryKey: ["/api/reports", { reportType, dateFrom, dateTo, employeeId: employeeIdParam }] 
+    });
   };
 
   // Format chart data
@@ -152,7 +156,7 @@ export default function Reports() {
                         <SelectValue placeholder="All Employees" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Employees</SelectItem>
+                        <SelectItem value="all_employees">All Employees</SelectItem>
                         {employees.map((employee) => (
                           <SelectItem key={employee.id} value={employee.id.toString()}>
                             {employee.name}

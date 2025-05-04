@@ -65,8 +65,10 @@ export default function TimeEntries() {
   // Apply filters handler
   const handleApplyFilters = () => {
     setCurrentPage(1);
+    // Only pass employeeId if it's not 'all_employees'
+    const employeeIdParam = employeeId !== "all_employees" ? employeeId : undefined;
     queryClient.invalidateQueries({ 
-      queryKey: ["/api/time-entries", { dateFrom, dateTo, employeeId, page: 1 }] 
+      queryKey: ["/api/time-entries", { dateFrom, dateTo, employeeId: employeeIdParam, page: 1 }] 
     });
   };
 
@@ -203,7 +205,7 @@ export default function TimeEntries() {
                         <SelectValue placeholder="All Employees" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Employees</SelectItem>
+                        <SelectItem value="all_employees">All Employees</SelectItem>
                         {employees.map((employee) => (
                           <SelectItem key={employee.id} value={employee.id.toString()}>
                             {employee.name}
