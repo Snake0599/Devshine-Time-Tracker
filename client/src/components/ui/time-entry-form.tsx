@@ -66,19 +66,24 @@ export function TimeEntryForm({ timeEntry, onSuccess }: TimeEntryFormProps) {
 
   // Create or update mutation
   const mutation = useMutation({
-    mutationFn: async (data: TimeEntryFormValues) => {
-      // Make sure we're sending a valid date format
-      const processedData = {
-        ...data,
-        // Parse the date properly
-        date: data.date ? new Date(data.date) : new Date(),
-      };
+    mutationFn: async (data: any) => {
+      // We'll use the already preprocessed data from onSubmit function
+      // The data should now have proper type conversion
       
       const endpoint = timeEntry 
         ? `/api/time-entries/${timeEntry.id}` 
         : "/api/time-entries";
       const method = timeEntry ? "PATCH" : "POST";
-      const res = await apiRequest(method, endpoint, processedData);
+      
+      console.log('Making API request with data:', data);
+      const res = await apiRequest(method, endpoint, data);
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('API Error:', errorText);
+        throw new Error(errorText);
+      }
+      
       return await res.json();
     },
     onSuccess: () => {
@@ -103,7 +108,19 @@ export function TimeEntryForm({ timeEntry, onSuccess }: TimeEntryFormProps) {
   });
 
   function onSubmit(data: TimeEntryFormValues) {
-    mutation.mutate(data);
+    console.log('Form data before submission:', data);
+    
+    // Explicitly convert the form data to the right format before submission
+    const formattedData = {
+      ...data,
+      employeeId: Number(data.employeeId),
+      breakMinutes: Number(data.breakMinutes),
+      // Let's manually format the date as an ISO string that Postgres will accept
+      date: new Date(data.date).toISOString(),
+    };
+
+    console.log('Formatted data for submission:', formattedData);
+    mutation.mutate(formattedData);
   }
 
   const isSubmitting = mutation.isPending;
