@@ -64,19 +64,19 @@ export const timeEntriesRelations = relations(timeEntries, ({ one }) => ({
   }),
 }));
 
-export const timeEntrySchema = createInsertSchema(timeEntries, {
-  employeeId: (schema) => schema.min(1, "Employee ID is required"),
-  date: (schema) => z.preprocess(
-    (val) => {
-      // Handle Date objects or ISO strings
-      if (val instanceof Date) return val;
-      if (typeof val === 'string') return new Date(val);
-      return val;
-    },
-    schema
-  ),
-  checkInTime: (schema) => schema.min(1, "Check-in time is required"),
-  breakMinutes: (schema) => schema.default(0),
+// Instead of using createInsertSchema, define a custom Zod schema
+export const timeEntrySchema = z.object({
+  employeeId: z.coerce.number().min(1, "Employee ID is required"),
+  date: z.union([
+    z.date(),
+    z.string().transform(val => new Date(val))
+  ]),
+  checkInTime: z.string().min(1, "Check-in time is required"),
+  checkOutTime: z.string().optional(),
+  breakMinutes: z.coerce.number().default(0),
+  totalHours: z.number().optional(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional()
 });
 
 export type InsertTimeEntry = z.infer<typeof timeEntrySchema>;

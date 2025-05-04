@@ -151,29 +151,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
       
-      const data = req.body;
-      
-      // Ensure date is a Date object
-      let date;
-      if (data.date instanceof Date) {
-        date = data.date;
-      } else if (typeof data.date === 'string') {
-        date = new Date(data.date);
-      } else {
-        return res.status(400).json({ error: "Invalid date format" });
-      }
+      // Parse the data with our custom Zod schema that handles type conversion
+      const parsedData = timeEntrySchema.parse(req.body);
       
       // Check if it's a weekend
-      if (isWeekend(date)) {
+      if (isWeekend(parsedData.date)) {
         return res.status(400).json({ error: "Cannot add time entries for weekends" });
       }
       
-      const validatedData = timeEntrySchema.parse({
-        ...data,
-        date: date
-      });
-      
-      const timeEntry = await storage.createTimeEntry(validatedData);
+      const timeEntry = await storage.createTimeEntry(parsedData);
       
       res.status(201).json(timeEntry);
     } catch (error: any) {
@@ -208,31 +194,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
       
       const id = parseInt(req.params.id);
-      const data = req.body;
       
-      let processedData = { ...data };
+      // Parse the data with our custom Zod schema that handles type conversion
+      const parsedData = timeEntrySchema.partial().parse(req.body);
       
-      if (data.date) {
-        // Ensure date is a Date object
-        let date;
-        if (data.date instanceof Date) {
-          date = data.date;
-        } else if (typeof data.date === 'string') {
-          date = new Date(data.date);
-        } else {
-          return res.status(400).json({ error: "Invalid date format" });
-        }
-        
-        // Check if it's a weekend
-        if (isWeekend(date)) {
-          return res.status(400).json({ error: "Cannot update time entries to weekends" });
-        }
-        
-        processedData.date = date;
+      // Check if it's a weekend
+      if (parsedData.date && isWeekend(parsedData.date)) {
+        return res.status(400).json({ error: "Cannot update time entries to weekends" });
       }
       
-      const validatedData = timeEntrySchema.partial().parse(processedData);
-      const timeEntry = await storage.updateTimeEntry(id, validatedData);
+      const timeEntry = await storage.updateTimeEntry(id, parsedData);
       
       if (!timeEntry) {
         return res.status(404).json({ error: "Time entry not found" });
