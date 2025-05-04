@@ -67,10 +67,11 @@ export function TimeEntryForm({ timeEntry, onSuccess }: TimeEntryFormProps) {
   // Create or update mutation
   const mutation = useMutation({
     mutationFn: async (data: TimeEntryFormValues) => {
-      // Convert the date string to a Date object
+      // Make sure we're sending a valid date format
       const processedData = {
         ...data,
-        date: new Date(data.date),
+        // Parse the date properly
+        date: data.date ? new Date(data.date) : new Date(),
       };
       
       const endpoint = timeEntry 

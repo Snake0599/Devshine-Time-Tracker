@@ -66,7 +66,15 @@ export const timeEntriesRelations = relations(timeEntries, ({ one }) => ({
 
 export const timeEntrySchema = createInsertSchema(timeEntries, {
   employeeId: (schema) => schema.min(1, "Employee ID is required"),
-  date: (schema) => schema,
+  date: (schema) => z.preprocess(
+    (val) => {
+      // Handle Date objects or ISO strings
+      if (val instanceof Date) return val;
+      if (typeof val === 'string') return new Date(val);
+      return val;
+    },
+    schema
+  ),
   checkInTime: (schema) => schema.min(1, "Check-in time is required"),
   breakMinutes: (schema) => schema.default(0),
 });
