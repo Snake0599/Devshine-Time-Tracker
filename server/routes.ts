@@ -126,7 +126,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const dateFrom = req.query.dateFrom ? parseISO(req.query.dateFrom as string) : undefined;
       const dateTo = req.query.dateTo ? parseISO(req.query.dateTo as string) : undefined;
-      const employeeId = req.query.employeeId ? parseInt(req.query.employeeId as string) : undefined;
+      const employeeId = req.query.employeeId && req.query.employeeId !== "all_employees" 
+        ? parseInt(req.query.employeeId as string) 
+        : undefined;
       const page = req.query.page ? parseInt(req.query.page as string) : 1;
       const pageSize = 10;
       
@@ -150,14 +152,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
       
       const data = req.body;
-      const date = new Date(data.date);
+      
+      // Ensure date is a Date object
+      let date;
+      if (data.date instanceof Date) {
+        date = data.date;
+      } else if (typeof data.date === 'string') {
+        date = new Date(data.date);
+      } else {
+        return res.status(400).json({ error: "Invalid date format" });
+      }
       
       // Check if it's a weekend
       if (isWeekend(date)) {
         return res.status(400).json({ error: "Cannot add time entries for weekends" });
       }
       
-      const validatedData = timeEntrySchema.parse(data);
+      const validatedData = timeEntrySchema.parse({
+        ...data,
+        date: date
+      });
+      
       const timeEntry = await storage.createTimeEntry(validatedData);
       
       res.status(201).json(timeEntry);
@@ -195,15 +210,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const data = req.body;
       
+      let processedData = { ...data };
+      
       if (data.date) {
-        const date = new Date(data.date);
+        // Ensure date is a Date object
+        let date;
+        if (data.date instanceof Date) {
+          date = data.date;
+        } else if (typeof data.date === 'string') {
+          date = new Date(data.date);
+        } else {
+          return res.status(400).json({ error: "Invalid date format" });
+        }
+        
         // Check if it's a weekend
         if (isWeekend(date)) {
           return res.status(400).json({ error: "Cannot update time entries to weekends" });
         }
+        
+        processedData.date = date;
       }
       
-      const validatedData = timeEntrySchema.partial().parse(data);
+      const validatedData = timeEntrySchema.partial().parse(processedData);
       const timeEntry = await storage.updateTimeEntry(id, validatedData);
       
       if (!timeEntry) {
