@@ -287,7 +287,11 @@ export default function TimeEntries() {
                             </TableCell>
                             <TableCell>
                               {isWeekend ? "--" : 
-                                (entry.totalHours !== null ? entry.totalHours.toFixed(2) : "--")}
+                                (entry.totalHours !== null && entry.totalHours !== undefined 
+                                  ? (typeof entry.totalHours === 'number' 
+                                    ? entry.totalHours.toFixed(2) 
+                                    : Number(entry.totalHours).toFixed(2))
+                                  : "--")}
                             </TableCell>
                             <TableCell>
                               {isWeekend ? (
