@@ -58,6 +58,25 @@ export default function Reports() {
   // Fetch report data
   const { data: reportData, isLoading } = useQuery({
     queryKey: ["/api/reports", { reportType, dateFrom, dateTo, employeeId }],
+    queryFn: async () => {
+      // Build query params
+      const params = new URLSearchParams();
+      params.append('reportType', reportType);
+      if (dateFrom) params.append('dateFrom', dateFrom);
+      if (dateTo) params.append('dateTo', dateTo);
+      if (employeeId && employeeId !== "all_employees") params.append('employeeId', employeeId);
+      
+      const url = `/api/reports?${params.toString()}`;
+      console.log('Fetching reports with URL:', url);
+      
+      const res = await fetch(url);
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('Reports API error:', errorText);
+        throw new Error(errorText);
+      }
+      return res.json();
+    }
   });
 
   // Fetch employees for filter dropdown

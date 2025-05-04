@@ -52,6 +52,25 @@ export default function TimeEntries() {
   // Fetch time entries with filters
   const { data, isLoading } = useQuery({
     queryKey: ["/api/time-entries", { dateFrom, dateTo, employeeId, page: currentPage }],
+    queryFn: async () => {
+      // Build query params
+      const params = new URLSearchParams();
+      if (dateFrom) params.append('dateFrom', dateFrom);
+      if (dateTo) params.append('dateTo', dateTo);
+      if (employeeId && employeeId !== "all_employees") params.append('employeeId', employeeId);
+      params.append('page', currentPage.toString());
+      
+      const url = `/api/time-entries?${params.toString()}`;
+      console.log('Fetching time entries with URL:', url);
+      
+      const res = await fetch(url);
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('Time entries API error:', errorText);
+        throw new Error(errorText);
+      }
+      return res.json();
+    }
   });
 
   const timeEntries = data?.entries || [];
