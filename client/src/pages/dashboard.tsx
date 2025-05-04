@@ -31,6 +31,22 @@ export default function Dashboard() {
   // Fetch dashboard data
   const { data: dashboardData, isLoading } = useQuery({
     queryKey: ["/api/dashboard", selectedDate],
+    queryFn: async () => {
+      // Build query params to include the selected date
+      const params = new URLSearchParams();
+      if (selectedDate) params.append('date', selectedDate);
+      
+      const url = `/api/dashboard?${params.toString()}`;
+      console.log('Fetching dashboard data with URL:', url);
+      
+      const res = await fetch(url);
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('Dashboard API error:', errorText);
+        throw new Error(errorText);
+      }
+      return res.json();
+    }
   });
 
   // Today's entries are part of the dashboard data
@@ -254,7 +270,11 @@ export default function Dashboard() {
                           </TableCell>
                           <TableCell>{entry.breakMinutes}</TableCell>
                           <TableCell>
-                            {entry.totalHours !== null ? entry.totalHours.toFixed(2) : "--"}
+                            {entry.totalHours !== null && entry.totalHours !== undefined 
+                              ? (typeof entry.totalHours === 'number' 
+                                ? entry.totalHours.toFixed(2) 
+                                : Number(entry.totalHours).toFixed(2))
+                              : "--"}
                           </TableCell>
                           <TableCell>
                             <StatusBadge status={entry.checkOutTime ? "completed" : "in progress"} />
