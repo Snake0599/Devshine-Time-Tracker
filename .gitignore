@@ -1,6 +1,32 @@
-node_modules
-dist
+
+# Node
+node_modules/
+dist/
+*.log
+npm-debug.log*
+
+# MacOS
 .DS_Store
-server/public
-vite.config.ts.*
+
+# dotenv and environment
+.env
+.env.*
+
+# Build output
 *.tar.gz
+
+# Vite and config artifacts
+vite.config.ts.*
+.vite/
+
+# Server public build (if dynamically generated)
+server/public/
+
+# TypeScript
+*.tsbuildinfo
+
+# Drizzle
+drizzle/migrations/*.sql
+
+# VSCode
+.vscode/
