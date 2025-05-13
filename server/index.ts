@@ -55,11 +55,11 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-   const port = process.env.PORT || 5000;  // Use dynamic port if available, else fallback to 5000
-server.listen({
-  port,
-  host: "0.0.0.0",  // This makes the app accessible externally
-}, () => {
-  log(`serving on http://localhost:${port}`);
-});
+  const port = process.env.PORT || 5000;  // Use dynamic port if available, else fallback to 5000
+  server.listen({
+    port,
+    host: "0.0.0.0",  // This makes the app accessible externally
+  }, () => {
+    log(`serving on http://localhost:${port}`);
+  });
 })();

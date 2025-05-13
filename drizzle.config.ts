@@ -1,15 +1,17 @@
 import { defineConfig } from "drizzle-kit";
 
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL, ensure the database is provisioned");
-}
-
 export default defineConfig({
   out: "./db/migrations",
   schema: "./shared/schema.ts",
   dialect: "postgresql",
   dbCredentials: {
-    url: process.env.DATABASE_URL,
+    host: "aws-0-ap-south-1.pooler.supabase.com",
+    port: 6543,
+    database: "postgres",
+    user: "postgres.stvovoxmvrhgkszesngt",
+    password: "Snake0599",
+    ssl: {
+      rejectUnauthorized: false, // <- allows self-signed certs
+    },
   },
-  verbose: true,
 });
