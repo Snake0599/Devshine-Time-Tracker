@@ -9,6 +9,7 @@ import { useMobile } from "@/hooks/use-mobile";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { formatHoursToHhMm } from "@shared/utils";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Table, 
@@ -172,7 +173,7 @@ export default function Dashboard() {
                     <div>
                       <p className="text-sm font-medium text-gray-500">Total Hours Today</p>
                       <p className="text-3xl font-semibold text-gray-900">
-                        {isLoading ? "..." : dashboardData?.stats?.totalHours || "0"}
+                        {isLoading ? "..." : formatHoursToHhMm(dashboardData?.stats?.totalHours || 0)}
                       </p>
                     </div>
                     <div className="bg-blue-100 p-3 rounded-full">
@@ -208,7 +209,7 @@ export default function Dashboard() {
                     <div>
                       <p className="text-sm font-medium text-gray-500">Avg. Hours Per Employee</p>
                       <p className="text-3xl font-semibold text-gray-900">
-                        {isLoading ? "..." : dashboardData?.stats?.avgHoursPerEmployee || "0"}
+                        {isLoading ? "..." : formatHoursToHhMm(dashboardData?.stats?.avgHoursPerEmployee || 0)}
                       </p>
                     </div>
                     <div className="bg-green-100 p-3 rounded-full">
@@ -216,7 +217,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <p className="text-sm text-gray-500 mt-2">
-                    This week: {isLoading ? "..." : dashboardData?.stats?.weeklyAvgHours || "0"} hours avg.
+                    This week: {isLoading ? "..." : formatHoursToHhMm(dashboardData?.stats?.weeklyAvgHours || 0)} avg.
                   </p>
                 </CardContent>
               </Card>
@@ -271,10 +272,10 @@ export default function Dashboard() {
                           <TableCell>{entry.breakMinutes}</TableCell>
                           <TableCell>
                             {entry.totalHours !== null && entry.totalHours !== undefined 
-                              ? (typeof entry.totalHours === 'number' 
-                                ? entry.totalHours.toFixed(2) 
-                                : Number(entry.totalHours).toFixed(2))
-                              : "--"}
+                            ? formatHoursToHhMm(typeof entry.totalHours === "number" 
+                                ? entry.totalHours 
+                                : Number(entry.totalHours))
+                            : "--"}
                           </TableCell>
                           <TableCell>
                             <StatusBadge status={entry.checkOutTime ? "completed" : "in progress"} />

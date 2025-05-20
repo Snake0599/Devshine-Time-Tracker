@@ -22,7 +22,12 @@ export function formatTimeForInput(timeString: string): string {
   // Already in 24-hour format
   return timeString;
 }
-
+export function formatHoursToHhMm(hours: number): string {
+  const totalMinutes = Math.round(hours * 60);       // convert hours to minutes (rounded to nearest minute)
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+  return `${h}h ${m}m`;
+}
 /**
  * Convert time string to minutes since midnight
  */

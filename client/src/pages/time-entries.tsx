@@ -2,6 +2,7 @@ import { useState } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarNav } from "@/components/sidebar-nav";
 import { Button } from "@/components/ui/button";
+import { formatHoursToHhMm } from "@shared/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { TimeEntryForm } from "@/components/ui/time-entry-form";
@@ -305,12 +306,13 @@ export default function TimeEntries() {
                               {isWeekend ? "--" : entry.breakMinutes}
                             </TableCell>
                             <TableCell>
-                              {isWeekend ? "--" : 
-                                (entry.totalHours !== null && entry.totalHours !== undefined 
-                                  ? (typeof entry.totalHours === 'number' 
-                                    ? entry.totalHours.toFixed(2) 
-                                    : Number(entry.totalHours).toFixed(2))
-                                  : "--")}
+                              {isWeekend ? "--" : (
+                                      entry.totalHours !== null && entry.totalHours !== undefined 
+                                        ? formatHoursToHhMm(typeof entry.totalHours === "number" 
+                                            ? entry.totalHours 
+                                            : Number(entry.totalHours))
+                                        : "--"
+                                    )}
                             </TableCell>
                             <TableCell>
                               {isWeekend ? (

@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { TimeEntry, Employee } from "@shared/schema";
 import { useState, useEffect } from "react";
 import { formatTimeForInput, calculateTotalHours } from "@shared/utils";
-
+import { formatHoursToHhMm } from "@shared/utils";
 // Form schema
 const timeEntrySchema = z.object({
   employeeId: z.coerce.number().min(1, "Employee selection is required"),
@@ -245,7 +245,7 @@ export function TimeEntryForm({ timeEntry, onSuccess }: TimeEntryFormProps) {
               <div className="md:col-span-2 flex items-end">
                 {totalHours !== null && (
                   <div className="text-sm text-gray-500">
-                    Total hours: <span className="font-medium">{totalHours}</span>
+                    Total hours: <span className="font-medium">{formatHoursToHhMm(totalHours)}</span>
                   </div>
                 )}
               </div>

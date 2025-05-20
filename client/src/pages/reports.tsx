@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useMobile } from "@/hooks/use-mobile";
 import { useQuery } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
+import { formatHoursToHhMm } from "@shared/utils";
 import { format } from "date-fns";
 import { 
   Table, 
@@ -213,7 +214,7 @@ export default function Reports() {
                           <CartesianGrid strokeDasharray="3 3" />
                           <XAxis dataKey="name" />
                           <YAxis label={{ value: 'Hours', angle: -90, position: 'insideLeft' }} />
-                          <Tooltip formatter={(value) => [`${value} hours`]} />
+                         <Tooltip formatter={(value) => [formatHoursToHhMm(value as number)]} />
                           <Legend />
                           {reportData.employees && reportData.employees.map((employee: any, index: number) => (
                             <Bar 
@@ -270,12 +271,10 @@ export default function Reports() {
                               <TableCell>
                                 {item.totalDays}
                               </TableCell>
-                              <TableCell>
-                                {item.totalHours.toFixed(2)}
-                              </TableCell>
-                              <TableCell>
-                                {item.avgDailyHours.toFixed(2)}
-                              </TableCell>
+                              
+                               <TableCell>{formatHoursToHhMm(item.totalHours)}</TableCell>
+                            <TableCell>{formatHoursToHhMm(item.avgDailyHours)}</TableCell>
+                            
                               <TableCell>
                                 {formatTime(item.totalBreakMinutes)}
                               </TableCell>
@@ -293,8 +292,8 @@ export default function Reports() {
                           <TableRow>
                             <TableCell className="font-medium">Totals</TableCell>
                             <TableCell>{employeeTotals.totalDays || 0}</TableCell>
-                            <TableCell>{employeeTotals.totalHours?.toFixed(2) || 0}</TableCell>
-                            <TableCell>{employeeTotals.avgDailyHours?.toFixed(2) || 0}</TableCell>
+                            <TableCell>{formatHoursToHhMm(employeeTotals.totalHours || 0)}</TableCell>
+<TableCell>{formatHoursToHhMm(employeeTotals.avgDailyHours || 0)}</TableCell>
                             <TableCell>{formatTime(employeeTotals.totalBreakMinutes || 0)}</TableCell>
                             <TableCell></TableCell>
                           </TableRow>
