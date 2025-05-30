@@ -249,56 +249,51 @@ export default function Reports() {
                         <TableRow>
                           <TableHead>Employee</TableHead>
                           <TableHead>Total Days</TableHead>
-                          <TableHead>Total Hours</TableHead>
+                          <TableHead>Working Hours</TableHead>
                           <TableHead>Avg. Daily Hours</TableHead>
                           <TableHead>Break Time (total)</TableHead>
-                          <TableHead>Details</TableHead>
+                          <TableHead>Total (Incl. Break)</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {summaryData.length === 0 ? (
-                          <TableRow>
-                            <TableCell colSpan={6} className="text-center py-4">
-                              No data available for the selected criteria.
+                      {summaryData.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center py-4">
+                            No data available for the selected criteria.
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        summaryData.map((item: any) => (
+                          <TableRow key={item.employeeId}>
+                            <TableCell className="font-medium">{item.employeeName}</TableCell>
+                            <TableCell>{item.totalDays}</TableCell>
+                            <TableCell>{formatHoursToHhMm(item.totalHours)}</TableCell>
+                            <TableCell>{formatHoursToHhMm(item.avgDailyHours)}</TableCell>
+                            <TableCell>{formatTime(item.totalBreakMinutes)}</TableCell>
+                            <TableCell>
+                              {formatHoursToHhMm(item.totalHours + item.totalBreakMinutes / 60)}
                             </TableCell>
                           </TableRow>
-                        ) : (
-                          summaryData.map((item: any) => (
-                            <TableRow key={item.employeeId}>
-                              <TableCell className="font-medium">
-                                {item.employeeName}
-                              </TableCell>
-                              <TableCell>
-                                {item.totalDays}
-                              </TableCell>
-                              
-                               <TableCell>{formatHoursToHhMm(item.totalHours)}</TableCell>
-                            <TableCell>{formatHoursToHhMm(item.avgDailyHours)}</TableCell>
-                            
-                              <TableCell>
-                                {formatTime(item.totalBreakMinutes)}
-                              </TableCell>
-                              <TableCell>
-                                <Button variant="link" className="text-primary">
-                                  View Details
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))
-                        )}
-                      </TableBody>
-                      {summaryData.length > 0 && (
-                        <TableFooter>
-                          <TableRow>
-                            <TableCell className="font-medium">Totals</TableCell>
-                            <TableCell>{employeeTotals.totalDays || 0}</TableCell>
-                            <TableCell>{formatHoursToHhMm(employeeTotals.totalHours || 0)}</TableCell>
-<TableCell>{formatHoursToHhMm(employeeTotals.avgDailyHours || 0)}</TableCell>
-                            <TableCell>{formatTime(employeeTotals.totalBreakMinutes || 0)}</TableCell>
-                            <TableCell></TableCell>
-                          </TableRow>
-                        </TableFooter>
+                        ))
                       )}
+                    </TableBody>
+                    {summaryData.length > 0 && (
+                      <TableFooter>
+                        <TableRow>
+                          <TableCell className="font-medium">Totals</TableCell>
+                          <TableCell>{employeeTotals.totalDays || 0}</TableCell>
+                          <TableCell>{formatHoursToHhMm(employeeTotals.totalHours || 0)}</TableCell>
+                          <TableCell>{formatHoursToHhMm(employeeTotals.avgDailyHours || 0)}</TableCell>
+                          <TableCell>{formatTime(employeeTotals.totalBreakMinutes || 0)}</TableCell>
+                          <TableCell>
+                            {formatHoursToHhMm(
+                              (employeeTotals.totalHours || 0) +
+                              (employeeTotals.totalBreakMinutes || 0) / 60
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      </TableFooter>
+                    )}
                     </Table>
                   </div>
                 </Card>
