@@ -10,6 +10,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes
   setupAuth(app);
 
+  function authenticateUser(req, res, next) {
+    if (req.isAuthenticated && req.isAuthenticated()) {
+      return next();
+    }
+    res.status(401).json({ error: "Not authenticated" });
+  }
+
+  function requireAdmin(req, res, next) {
+  const adminList = process.env.ADMIN_USERS?.split(',').map(u => u.trim()) || [];
+  const userId = req.user?.username || req.user?.email;
+  if (!userId || !adminList.includes(userId)) {
+    return res.status(403).json({ error: 'Forbidden: Admins only.' });
+  }
+  next(); // user is admin, allow through
+}
   // Dashboard API endpoint
   app.get("/api/dashboard", async (req, res) => {
     try {
@@ -30,7 +45,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to fetch dashboard data" });
     }
   });
-
+ 
   // Employees API endpoints
   app.get("/api/employees", async (req, res) => {
     try {
@@ -44,10 +59,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/employees", async (req, res) => {
+  app.post("/api/employees", requireAdmin, async (req, res) => {
     try {
       if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
-      
+     
       const validatedData = employeeSchema.parse(req.body);
       const employee = await storage.createEmployee(validatedData);
       res.status(201).json(employee);
@@ -78,7 +93,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/employees/:id", async (req, res) => {
+  app.patch("/api/employees/:id", requireAdmin, async (req, res) => {
     try {
       if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
       
@@ -101,7 +116,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/employees/:id/deactivate", async (req, res) => {
+  app.patch("/api/employees/:id/deactivate", requireAdmin, async (req, res) => {
     try {
       if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
       
@@ -147,10 +162,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/time-entries", async (req, res) => {
+  app.post("/api/time-entries", requireAdmin, async (req, res) => {
     try {
       if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
-      
+     
       const data = req.body;
       
       // Skip Zod validation and explicitly process the data
@@ -213,10 +228,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/time-entries/:id", async (req, res) => {
+  app.patch("/api/time-entries/:id", requireAdmin, async (req, res) => {
     try {
       if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
-      
+     
       const id = parseInt(req.params.id);
       const data = req.body;
       
@@ -280,10 +295,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/time-entries/:id", async (req, res) => {
+  app.delete("/api/time-entries/:id", requireAdmin, async (req, res) => {
     try {
       if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
-      
+     
       const id = parseInt(req.params.id);
       await storage.deleteTimeEntry(id);
       
@@ -294,7 +309,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/time-entries/:id/checkout", async (req, res) => {
+  app.post("/api/time-entries/:id/checkout", requireAdmin, async (req, res) => {
     try {
       if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
       
